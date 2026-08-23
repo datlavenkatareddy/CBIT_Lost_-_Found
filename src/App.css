@@ -1,0 +1,163 @@
+/* ===== CBIT Lost & Found Portal - Main Stylesheet ===== */
+
+/* Universal Square/Rectangle styling - strictly NO rounded edges */
+*,
+*::before,
+*::after,
+.card,
+.card-body,
+.card-header,
+.card-footer,
+.card-img-top,
+.btn,
+.btn-group,
+.form-control,
+.form-select,
+.badge,
+.alert,
+.modal-content,
+.table,
+.table-responsive,
+.nav-link,
+.navbar,
+.analytics-bar,
+.analytics-bar-container,
+.stat-card,
+.recent-table-img,
+.image-preview,
+img {
+  border-radius: 0 !important;
+}
+
+/* Body */
+body {
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Navbar */
+.navbar {
+  box-shadow: none;
+}
+
+/* Card Styling - Fixed Everywhere, NO Hover Movement or Animation */
+.card {
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transform: none !important;
+  transition: none !important;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: none !important;
+  transition: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Item card images - Fixed, NO zoom */
+.item-card-img {
+  height: 180px;
+  width: 100%;
+  object-fit: cover;
+  background-color: #f1f5f9;
+  transform: none !important;
+  transition: none !important;
+}
+
+.card:hover .item-card-img {
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Recent reports table thumbnail */
+.recent-table-img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+}
+
+/* Dashboard analytics bars - Flat, Basic, Rectangular (No Curves, No AI Look) */
+.analytics-label {
+  width: 110px;
+  font-size: 0.9rem;
+  text-align: right;
+  flex-shrink: 0;
+  color: #334155;
+}
+
+.analytics-bar-container {
+  height: 20px;
+  background-color: #e2e8f0;
+  overflow: hidden;
+}
+
+.analytics-bar {
+  height: 100%;
+  background-color: #0d6efd !important;
+  background-image: none !important;
+  min-width: 2px;
+  transition: none !important;
+}
+
+.analytics-bar.bg-info {
+  background-color: #0dcaf0 !important;
+  background-image: none !important;
+}
+
+.analytics-count {
+  width: 32px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  flex-shrink: 0;
+  color: #0f172a;
+}
+
+/* Stat card - Fixed */
+.stat-card {
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+}
+
+.stat-card .card-body {
+  padding: 1.25rem 1rem;
+}
+
+/* Colored Footer */
+.footer-colored {
+  background-color: #0d6efd;
+  color: #ffffff;
+}
+
+.footer-colored p {
+  color: #ffffff;
+}
+
+/* Report type toggle */
+.report-type-btn {
+  min-width: 120px;
+}
+
+/* Image preview on report form */
+.image-preview {
+  max-height: 220px;
+  object-fit: cover;
+  border: 1px solid #cbd5e1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .analytics-label {
+    width: 80px;
+    font-size: 0.8rem;
+  }
+
+  .item-card-img {
+    height: 150px;
+  }
+}
