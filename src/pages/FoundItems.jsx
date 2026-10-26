@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import ItemCard from '../components/ItemCard'
 import SearchBar from '../components/SearchBar'
+import { API_BASE_URL } from '../services/api'
 
 function FoundItems() {
   const [items, setItems] = useState([])
@@ -9,21 +10,19 @@ function FoundItems() {
   const [searchTerm, setSearchTerm] = useState('')
   const [category, setCategory] = useState('All')
 
-  // Fetch items using Fetch API
+  // Fetch items using backend API
   useEffect(() => {
-    fetch('/data/items.json')
+    fetch(`${API_BASE_URL}/items?type=found&limit=100`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
         }
         return response.json()
       })
-      .then((data) => {
-        // Merge with session-submitted items
-        const sessionItems = JSON.parse(sessionStorage.getItem('reportedItems') || '[]')
-        const allItems = [...data, ...sessionItems]
+      .then((res) => {
+        const itemData = Array.isArray(res) ? res : (res.data || [])
         // Filter only found items
-        setItems(allItems.filter((item) => item.type === 'found'))
+        setItems(itemData.filter((item) => item.type === 'found'))
         setLoading(false)
       })
       .catch((err) => {

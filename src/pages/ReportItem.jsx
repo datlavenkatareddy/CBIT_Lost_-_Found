@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { API_BASE_URL } from '../services/api'
 
 function ReportItem() {
   const [reportType, setReportType] = useState('lost')
@@ -13,9 +14,11 @@ function ReportItem() {
     contact: '',
     email: ''
   })
+  const [selectedFile, setSelectedFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [errors, setErrors] = useState({})
   const [successMsg, setSuccessMsg] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   // Handle form field changes (controlled form)
   const handleChange = (e) => {
@@ -31,11 +34,15 @@ function ReportItem() {
   const handleImageChange = (e) => {
     const file = e.target.files[0]
     if (file) {
+      setSelectedFile(file)
       const reader = new FileReader()
       reader.onload = () => {
         setImagePreview(reader.result)
       }
       reader.readAsDataURL(file)
+    } else {
+      setSelectedFile(null)
+      setImagePreview(null)
     }
   }
 
@@ -87,8 +94,8 @@ function ReportItem() {
     return Object.keys(newErrors).length === 0
   }
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+  // Handle form submission to MongoDB backend
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setSuccessMsg('')
 
@@ -96,48 +103,94 @@ function ReportItem() {
       return
     }
 
-    // Create new item object
-    const newItem = {
-      id: Date.now(),
-      type: reportType,
-      itemName: formData.itemName.trim(),
-      category: formData.category,
-      description: formData.description.trim(),
-      location: formData.location.trim(),
-      date: formData.date,
-      reportedBy: formData.reportedBy.trim(),
-      rollNo: reportType === 'lost' ? formData.rollNo.trim() : '',
-      contact: formData.contact.trim(),
-      email: formData.email.trim(),
-      image: imagePreview || '',
-      status: 'active'
+    setSubmitting(true)
+
+    try {
+      let finalImageUrl = imagePreview || ''
+
+      // If an image file was selected, upload it to backend storage
+      if (selectedFile) {
+        try {
+          const uploadFormData = new FormData()
+          uploadFormData.append('image', selectedFile)
+          const uploadRes = await fetch(`${API_BASE_URL}/upload`, {
+            method: 'POST',
+            body: uploadFormData
+          })
+          if (uploadRes.ok) {
+            const uploadJson = await uploadRes.json()
+            if (uploadJson.data?.url) {
+              finalImageUrl = uploadJson.data.url
+            }
+          }
+        } catch (uploadErr) {
+          console.warn('Image upload endpoint unavailable, using preview URL:', uploadErr)
+        }
+      }
+
+      // Payload matching backend API
+      const newItem = {
+        type: reportType,
+        itemName: formData.itemName.trim(),
+        category: formData.category,
+        description: formData.description.trim(),
+        location: formData.location.trim(),
+        date: formData.date,
+        reportedBy: formData.reportedBy.trim(),
+        rollNo: reportType === 'lost' ? formData.rollNo.trim() : '',
+        contact: formData.contact.trim(),
+        email: formData.email.trim(),
+        image: finalImageUrl,
+        status: 'active'
+      }
+
+      // Persist directly to MongoDB via backend API
+      const response = await fetch(`${API_BASE_URL}/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newItem)
+      })
+
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}))
+        const message = errJson.error?.message || 'Failed to submit report. Please try again.'
+        setErrors((prev) => ({ ...prev, submit: message }))
+        setSubmitting(false)
+        return
+      }
+
+      setSuccessMsg('Report submitted successfully!')
+
+      // Reset form
+      setFormData({
+        itemName: '',
+        category: '',
+        description: '',
+        location: '',
+        date: '',
+        reportedBy: '',
+        rollNo: '',
+        contact: '',
+        email: ''
+      })
+      setSelectedFile(null)
+      setImagePreview(null)
+      setErrors({})
+
+      // Reset file input
+      const fileInput = document.getElementById('imageInput')
+      if (fileInput) fileInput.value = ''
+    } catch (err) {
+      console.error('Submission error:', err)
+      setErrors((prev) => ({
+        ...prev,
+        submit: 'Network error connecting to backend API. Please make sure the server is running.'
+      }))
+    } finally {
+      setSubmitting(false)
     }
-
-    // Save to sessionStorage so it persists during navigation
-    const existing = JSON.parse(sessionStorage.getItem('reportedItems') || '[]')
-    existing.push(newItem)
-    sessionStorage.setItem('reportedItems', JSON.stringify(existing))
-
-    setSuccessMsg('Report submitted successfully!')
-
-    // Reset form
-    setFormData({
-      itemName: '',
-      category: '',
-      description: '',
-      location: '',
-      date: '',
-      reportedBy: '',
-      rollNo: '',
-      contact: '',
-      email: ''
-    })
-    setImagePreview(null)
-    setErrors({})
-
-    // Reset file input
-    const fileInput = document.getElementById('imageInput')
-    if (fileInput) fileInput.value = ''
   }
 
   return (
@@ -167,6 +220,13 @@ function ReportItem() {
       {successMsg && (
         <div className="alert alert-success" role="alert">
           {successMsg}
+        </div>
+      )}
+
+      {/* Error alert */}
+      {errors.submit && (
+        <div className="alert alert-danger" role="alert">
+          {errors.submit}
         </div>
       )}
 
@@ -329,8 +389,8 @@ function ReportItem() {
           </div>
         )}
 
-        <button type="submit" className="btn btn-primary">
-          Submit Report
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? 'Submitting...' : 'Submit Report'}
         </button>
       </form>
     </div>

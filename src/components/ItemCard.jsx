@@ -1,3 +1,5 @@
+import { getImageUrl } from '../services/api'
+
 function ItemCard({ item }) {
   // Format date for display
   const formattedDate = new Date(item.date).toLocaleDateString('en-IN', {
@@ -9,7 +11,7 @@ function ItemCard({ item }) {
   return (
     <div className="card h-100">
       <img
-        src={item.image || '/images/placeholder.svg'}
+        src={getImageUrl(item.image)}
         className="card-img-top item-card-img"
         alt={item.itemName}
         onError={(e) => {

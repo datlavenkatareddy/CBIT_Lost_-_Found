@@ -1,22 +1,24 @@
 import { useState, useEffect } from 'react'
 import StatCard from '../components/StatCard'
+import { API_BASE_URL, getImageUrl } from '../services/api'
 
 function Dashboard() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Fetch mock data using Fetch API inside useEffect
+  // Fetch live data from backend API
   useEffect(() => {
-    fetch('/data/items.json')
+    fetch(`${API_BASE_URL}/items?limit=100`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
         }
         return response.json()
       })
-      .then((data) => {
-        setItems(data)
+      .then((res) => {
+        const itemData = Array.isArray(res) ? res : (res.data || [])
+        setItems(itemData)
         setLoading(false)
       })
       .catch((err) => {
@@ -42,9 +44,8 @@ function Dashboard() {
     )
   }
 
-  // Merge with session-submitted items
-  const sessionItems = JSON.parse(sessionStorage.getItem('reportedItems') || '[]')
-  const allItems = [...items, ...sessionItems]
+  // Use items fetched directly from MongoDB
+  const allItems = items
 
   // Compute statistics from data
   const lostCount = allItems.filter((item) => item.type === 'lost').length
@@ -179,7 +180,7 @@ function Dashboard() {
               <tr key={item.id}>
                 <td>
                   <img
-                    src={item.image || '/images/placeholder.svg'}
+                    src={getImageUrl(item.image)}
                     alt={item.itemName}
                     className="recent-table-img"
                     onError={(e) => {
